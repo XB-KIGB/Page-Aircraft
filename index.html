@@ -392,7 +392,7 @@
       <section class="title-card glass">
         <div class="eyebrow">3D Interface</div>
         <h1 class="title">Tron Aircraft Viewer</h1>
-        <p class="subtitle">Código corregido: botones funcionales y carga manual de STL estable. Ya no depende de una cadena embebida rota.</p>
+        <p class="subtitle">Visor STL corregido con controles y botones funcionales.</p>
       </section>
 
       <aside class="control-panel glass">
@@ -442,7 +442,7 @@
         </div>
       </aside>
 
-      <div class="hint-panel glass">Controles: clic izquierdo para rotar, rueda para zoom y clic derecho para mover. Esta versión usa carga local del STL y también acepta arrastrar archivos .stl.</div>
+      <div class="hint-panel glass">Controles: clic izquierdo para rotar, rueda para zoom y clic derecho para mover.</div>
 
       <div class="status-bar glass">
         <div class="status-text" id="status">Carga un archivo STL para comenzar.</div>
@@ -456,41 +456,48 @@
     </div>
   </div>
 
-  <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
-  <script src="https://unpkg.com/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
-  <script src="https://unpkg.com/three@0.160.0/examples/js/loaders/STLLoader.js"></script>
-  <script>
-    const canvas = document.getElementById('scene');
-    const fileInput = document.getElementById('fileInput');
-    const fileName = document.getElementById('fileName');
-    const scaleSlider = document.getElementById('scaleSlider');
-    const scaleValue = document.getElementById('scaleValue');
-    const colorSlider = document.getElementById('colorSlider');
-    const colorValue = document.getElementById('colorValue');
-    const lightSlider = document.getElementById('lightSlider');
-    const lightValue = document.getElementById('lightValue');
-    const metalSlider = document.getElementById('metalSlider');
-    const metalValue = document.getElementById('metalValue');
-    const resetViewBtn = document.getElementById('resetViewBtn');
-    const spinBtn = document.getElementById('spinBtn');
-    const wireBtn = document.getElementById('wireBtn');
-    const matDefaultBtn = document.getElementById('matDefaultBtn');
-    const matMatteBtn = document.getElementById('matMatteBtn');
-    const matChromeBtn = document.getElementById('matChromeBtn');
-    const status = document.getElementById('status');
-    const hudScale = document.getElementById('hudScale');
-    const hudColor = document.getElementById('hudColor');
-    const hudMode = document.getElementById('hudMode');
+  <script type="module">
+    import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+    import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js";
+    import { STLLoader } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/STLLoader.js";
+
+    const canvas = document.getElementById("scene");
+    const fileInput = document.getElementById("fileInput");
+    const fileName = document.getElementById("fileName");
+    const scaleSlider = document.getElementById("scaleSlider");
+    const scaleValue = document.getElementById("scaleValue");
+    const colorSlider = document.getElementById("colorSlider");
+    const colorValue = document.getElementById("colorValue");
+    const lightSlider = document.getElementById("lightSlider");
+    const lightValue = document.getElementById("lightValue");
+    const metalSlider = document.getElementById("metalSlider");
+    const metalValue = document.getElementById("metalValue");
+    const resetViewBtn = document.getElementById("resetViewBtn");
+    const spinBtn = document.getElementById("spinBtn");
+    const wireBtn = document.getElementById("wireBtn");
+    const matDefaultBtn = document.getElementById("matDefaultBtn");
+    const matMatteBtn = document.getElementById("matMatteBtn");
+    const matChromeBtn = document.getElementById("matChromeBtn");
+    const status = document.getElementById("status");
+    const hudScale = document.getElementById("hudScale");
+    const hudColor = document.getElementById("hudColor");
+    const hudMode = document.getElementById("hudMode");
+
+    let autoSpin = true;
+    let wireframe = false;
+    let materialMode = "Tron";
+    let currentMesh = null;
+    let currentBaseScale = 1;
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x040404);
-    scene.fog = new THREE.Fog(0x040404, 14, 70);
+    scene.fog = new THREE.Fog(0x040404, 25, 200);
 
     const renderer = new THREE.WebGLRenderer({
       canvas,
       antialias: true,
       alpha: false,
-      powerPreference: 'high-performance'
+      powerPreference: "high-performance"
     });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -499,11 +506,11 @@
     const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.01, 5000);
     camera.position.set(0, 30, 120);
 
-    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
-    controls.dampingFactor = 0.05;
+    controls.dampingFactor = 0.06;
     controls.screenSpacePanning = true;
-    controls.minDistance = 1;
+    controls.minDistance = 0.5;
     controls.maxDistance = 4000;
     controls.target.set(0, 0, 0);
 
@@ -523,40 +530,45 @@
 
     const floorPlane = new THREE.Mesh(
       new THREE.PlaneGeometry(2000, 2000),
-      new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.015, side: THREE.DoubleSide })
+      new THREE.MeshBasicMaterial({
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0.015,
+        side: THREE.DoubleSide
+      })
     );
     floorPlane.rotation.x = -Math.PI / 2;
     scene.add(floorPlane);
 
-    const loader = new THREE.STLLoader();
-    let currentMesh = null;
-    let autoSpin = true;
-    let wireframe = false;
-    let materialMode = 'Tron';
+    const loader = new STLLoader();
 
     function setStatus(message) {
       status.textContent = message;
     }
 
     function setActiveButton(group, activeButton) {
-      group.forEach((button) => button.classList.toggle('active', button === activeButton));
+      group.forEach(btn => btn.classList.toggle("active", btn === activeButton));
     }
 
     function hueToLabel(hue) {
-      if (hue < 15 || hue >= 345) return 'Rojo';
-      if (hue < 45) return 'Naranja';
-      if (hue < 70) return 'Amarillo';
-      if (hue < 160) return 'Verde';
-      if (hue < 220) return 'Cian';
-      if (hue < 270) return 'Azul';
-      if (hue < 320) return 'Morado';
-      return 'Magenta';
+      if (hue < 15 || hue >= 345) return "Rojo";
+      if (hue < 45) return "Naranja";
+      if (hue < 70) return "Amarillo";
+      if (hue < 160) return "Verde";
+      if (hue < 220) return "Cian";
+      if (hue < 270) return "Azul";
+      if (hue < 320) return "Morado";
+      return "Magenta";
     }
 
     function getToneColor() {
       const hue = parseFloat(colorSlider.value);
-      const label = hue === 0 ? 'Neutro' : hueToLabel(hue);
-      const color = hue === 0 ? new THREE.Color(0xd8d8d8) : new THREE.Color().setHSL(hue / 360, 0.18, 0.78);
+      const isNeutral = hue === 0;
+      const label = isNeutral ? "Neutro" : hueToLabel(hue);
+      const color = isNeutral
+        ? new THREE.Color(0xd8d8d8)
+        : new THREE.Color().setHSL(hue / 360, 0.45, 0.68);
+
       colorValue.textContent = label;
       hudColor.textContent = label;
       return { color, label };
@@ -574,7 +586,7 @@
         metalness: parseFloat(metalSlider.value),
         roughness: 0.32,
         clearcoat: 0.35,
-        clearcoatRoughness: 0.3,
+        clearcoatRoughness: 0.30,
         emissive: new THREE.Color(0x111111),
         side: THREE.DoubleSide
       });
@@ -582,34 +594,35 @@
 
     function applyMaterialStyle() {
       if (!currentMesh) return;
-      const material = currentMesh.material;
-      const metalnessValue = parseFloat(metalSlider.value);
+
+      const mat = currentMesh.material;
       const { color } = getToneColor();
+      const metalnessValue = parseFloat(metalSlider.value);
 
-      material.color.copy(color);
-      material.wireframe = wireframe;
+      mat.color.copy(color);
+      mat.wireframe = wireframe;
 
-      if (materialMode === 'Mate') {
-        material.metalness = 0.05;
-        material.roughness = 0.82;
-        material.clearcoat = 0.08;
-        material.clearcoatRoughness = 0.8;
-        material.emissive.copy(color).multiplyScalar(0.04);
-      } else if (materialMode === 'Chrome') {
-        material.metalness = 0.95;
-        material.roughness = 0.18;
-        material.clearcoat = 0.9;
-        material.clearcoatRoughness = 0.08;
-        material.emissive.copy(color).multiplyScalar(0.03);
+      if (materialMode === "Mate") {
+        mat.metalness = 0.05;
+        mat.roughness = 0.85;
+        mat.clearcoat = 0.04;
+        mat.clearcoatRoughness = 0.9;
+        mat.emissive.copy(color).multiplyScalar(0.03);
+      } else if (materialMode === "Chrome") {
+        mat.metalness = 1.0;
+        mat.roughness = 0.15;
+        mat.clearcoat = 1.0;
+        mat.clearcoatRoughness = 0.05;
+        mat.emissive.copy(color).multiplyScalar(0.02);
       } else {
-        material.metalness = metalnessValue;
-        material.roughness = 0.32;
-        material.clearcoat = 0.35;
-        material.clearcoatRoughness = 0.3;
-        material.emissive.copy(color).multiplyScalar(0.13);
+        mat.metalness = metalnessValue;
+        mat.roughness = 0.32;
+        mat.clearcoat = 0.35;
+        mat.clearcoatRoughness = 0.30;
+        mat.emissive.copy(color).multiplyScalar(0.10);
       }
 
-      material.needsUpdate = true;
+      mat.needsUpdate = true;
       hudMode.textContent = materialMode;
       metalValue.textContent = metalnessValue.toFixed(2);
     }
@@ -618,6 +631,7 @@
       const box = new THREE.Box3().setFromObject(object);
       const size = box.getSize(new THREE.Vector3());
       const center = box.getCenter(new THREE.Vector3());
+
       const maxDim = Math.max(size.x, size.y, size.z) || 1;
       const fov = THREE.MathUtils.degToRad(camera.fov);
       let distance = maxDim / (2 * Math.tan(fov / 2));
@@ -626,56 +640,15 @@
       camera.near = Math.max(distance / 1000, 0.01);
       camera.far = Math.max(distance * 50, 2000);
       camera.updateProjectionMatrix();
-      camera.position.set(center.x + distance * 0.22, center.y + distance * 0.3, center.z + distance);
+
+      camera.position.set(
+        center.x + distance * 0.22,
+        center.y + distance * 0.30,
+        center.z + distance
+      );
+
       controls.target.copy(center);
       controls.update();
-    }
-
-    function centerAndFitMesh(mesh) {
-      mesh.geometry.computeBoundingBox();
-      mesh.geometry.computeVertexNormals();
-      mesh.geometry.computeBoundingSphere();
-
-      const box = mesh.geometry.boundingBox.clone();
-      const center = box.getCenter(new THREE.Vector3());
-      mesh.geometry.translate(-center.x, -center.y, -center.z);
-      mesh.rotation.set(-Math.PI / 2, 0, 0);
-      mesh.scale.setScalar(1);
-      mesh.position.set(0, 0, 0);
-
-      const tempBox = new THREE.Box3().setFromObject(mesh);
-      const size = tempBox.getSize(new THREE.Vector3());
-      const maxDim = Math.max(size.x, size.y, size.z) || 1;
-      const baseScale = 120 / maxDim;
-
-      mesh.userData.baseScale = baseScale;
-      scaleSlider.value = '1';
-      updateHudScale(1);
-      mesh.scale.setScalar(baseScale);
-
-      const placedBox = new THREE.Box3().setFromObject(mesh);
-      const placedSize = placedBox.getSize(new THREE.Vector3());
-      mesh.position.y = -placedBox.min.y + placedSize.y * 0.02;
-
-      const finalBox = new THREE.Box3().setFromObject(mesh);
-      grid.position.y = finalBox.min.y;
-      floorPlane.position.y = finalBox.min.y - 0.2;
-      fitCameraToObject(mesh);
-    }
-
-    function applySliderScale() {
-      if (!currentMesh) return;
-      const userScale = parseFloat(scaleSlider.value);
-      currentMesh.scale.setScalar(currentMesh.userData.baseScale * userScale);
-
-      const box = new THREE.Box3().setFromObject(currentMesh);
-      const size = box.getSize(new THREE.Vector3());
-      currentMesh.position.y = -box.min.y + size.y * 0.02;
-      grid.position.y = new THREE.Box3().setFromObject(currentMesh).min.y;
-      floorPlane.position.y = grid.position.y - 0.2;
-
-      updateHudScale(userScale);
-      fitCameraToObject(currentMesh);
     }
 
     function clearCurrentMesh() {
@@ -686,111 +659,186 @@
       currentMesh = null;
     }
 
+    function normalizeAndPlaceMesh(mesh) {
+      mesh.geometry.computeBoundingBox();
+      mesh.geometry.computeBoundingSphere();
+      mesh.geometry.computeVertexNormals();
+
+      const box = mesh.geometry.boundingBox.clone();
+      const center = box.getCenter(new THREE.Vector3());
+
+      mesh.geometry.translate(-center.x, -center.y, -center.z);
+      mesh.rotation.set(-Math.PI / 2, 0, 0);
+
+      mesh.scale.setScalar(1);
+      mesh.position.set(0, 0, 0);
+
+      const tempBox = new THREE.Box3().setFromObject(mesh);
+      const tempSize = tempBox.getSize(new THREE.Vector3());
+      const maxDim = Math.max(tempSize.x, tempSize.y, tempSize.z) || 1;
+
+      currentBaseScale = 120 / maxDim;
+      const userScale = parseFloat(scaleSlider.value);
+      mesh.scale.setScalar(currentBaseScale * userScale);
+
+      const placedBox = new THREE.Box3().setFromObject(mesh);
+      const placedSize = placedBox.getSize(new THREE.Vector3());
+
+      mesh.position.y = -placedBox.min.y + placedSize.y * 0.02;
+
+      const finalBox = new THREE.Box3().setFromObject(mesh);
+      grid.position.y = finalBox.min.y;
+      floorPlane.position.y = finalBox.min.y - 0.2;
+    }
+
     function buildMesh(geometry) {
       clearCurrentMesh();
+
       const mesh = new THREE.Mesh(geometry, buildMaterial());
-      scene.add(mesh);
       currentMesh = mesh;
-      centerAndFitMesh(mesh);
+      scene.add(mesh);
+
+      scaleSlider.value = "1";
+      updateHudScale(1);
+
+      normalizeAndPlaceMesh(mesh);
       applyMaterialStyle();
-      setStatus('Modelo cargado y visible.');
+      fitCameraToObject(mesh);
+
+      setStatus("Modelo cargado y visible.");
+    }
+
+    function applyScaleOnly() {
+      if (!currentMesh) return;
+
+      const userScale = parseFloat(scaleSlider.value);
+      currentMesh.scale.setScalar(currentBaseScale * userScale);
+
+      const box = new THREE.Box3().setFromObject(currentMesh);
+      const size = box.getSize(new THREE.Vector3());
+      currentMesh.position.y = -box.min.y + size.y * 0.02;
+
+      grid.position.y = box.min.y;
+      floorPlane.position.y = box.min.y - 0.2;
+
+      updateHudScale(userScale);
     }
 
     function loadGeometryFromArrayBuffer(buffer) {
       try {
         const geometry = loader.parse(buffer);
-        if (!geometry || !geometry.attributes || !geometry.attributes.position || geometry.attributes.position.count === 0) {
-          throw new Error('Geometría vacía');
+
+        if (
+          !geometry ||
+          !geometry.attributes ||
+          !geometry.attributes.position ||
+          geometry.attributes.position.count === 0
+        ) {
+          throw new Error("Geometría STL vacía o inválida.");
         }
+
         buildMesh(geometry);
       } catch (error) {
         console.error(error);
-        setStatus('No se pudo leer o visualizar el STL.');
+        setStatus("No se pudo leer o visualizar el STL.");
       }
-    }
-
-    function showFileError(error) {
-      console.error(error);
-      setStatus('No se pudo cargar el STL. Selecciona un archivo válido.');
     }
 
     function handleFile(file) {
       if (!file) return;
-      if (!file.name.toLowerCase().endsWith('.stl')) {
-        setStatus('Selecciona un archivo con extensión .stl');
+
+      if (!file.name.toLowerCase().endsWith(".stl")) {
+        setStatus("Selecciona un archivo con extensión .stl");
         return;
       }
+
       fileName.textContent = file.name;
-      setStatus('Cargando STL…');
-      file.arrayBuffer().then(loadGeometryFromArrayBuffer).catch(showFileError);
+      setStatus("Cargando STL...");
+
+      file.arrayBuffer()
+        .then(loadGeometryFromArrayBuffer)
+        .catch((error) => {
+          console.error(error);
+          setStatus("No se pudo cargar el STL. Selecciona un archivo válido.");
+        });
     }
 
-    fileInput.addEventListener('change', (event) => {
-      handleFile(event.target.files && event.target.files[0]);
+    fileInput.addEventListener("change", (event) => {
+      handleFile(event.target.files?.[0]);
     });
 
-    window.addEventListener('dragover', (event) => {
+    window.addEventListener("dragover", (event) => {
       event.preventDefault();
     });
 
-    window.addEventListener('drop', (event) => {
+    window.addEventListener("drop", (event) => {
       event.preventDefault();
-      handleFile(event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0]);
+      handleFile(event.dataTransfer?.files?.[0]);
     });
 
-    scaleSlider.addEventListener('input', applySliderScale);
-    colorSlider.addEventListener('input', applyMaterialStyle);
+    scaleSlider.addEventListener("input", () => {
+      applyScaleOnly();
+    });
 
-    lightSlider.addEventListener('input', () => {
+    colorSlider.addEventListener("input", () => {
+      applyMaterialStyle();
+    });
+
+    lightSlider.addEventListener("input", () => {
       const intensity = parseFloat(lightSlider.value);
       ambientLight.intensity = intensity;
       lightValue.textContent = intensity.toFixed(2);
     });
     lightValue.textContent = parseFloat(lightSlider.value).toFixed(2);
 
-    metalSlider.addEventListener('input', applyMaterialStyle);
+    metalSlider.addEventListener("input", () => {
+      applyMaterialStyle();
+    });
     metalValue.textContent = parseFloat(metalSlider.value).toFixed(2);
 
-    resetViewBtn.addEventListener('click', () => {
+    resetViewBtn.addEventListener("click", () => {
       if (!currentMesh) return;
       fitCameraToObject(currentMesh);
-      setStatus('Vista reiniciada.');
+      setStatus("Vista reiniciada.");
     });
 
-    spinBtn.addEventListener('click', () => {
+    spinBtn.addEventListener("click", () => {
       autoSpin = !autoSpin;
-      spinBtn.classList.toggle('active', autoSpin);
-      setStatus(autoSpin ? 'Auto giro activado.' : 'Auto giro pausado.');
+      spinBtn.classList.toggle("active", autoSpin);
+      setStatus(autoSpin ? "Auto giro activado." : "Auto giro pausado.");
     });
 
-    wireBtn.addEventListener('click', () => {
+    wireBtn.addEventListener("click", () => {
       wireframe = !wireframe;
-      wireBtn.classList.toggle('active', wireframe);
+      wireBtn.classList.toggle("active", wireframe);
       applyMaterialStyle();
-      setStatus(wireframe ? 'Wireframe activado.' : 'Wireframe desactivado.');
+      setStatus(wireframe ? "Wireframe activado." : "Wireframe desactivado.");
     });
 
     const materialButtons = [matDefaultBtn, matMatteBtn, matChromeBtn];
-    matDefaultBtn.addEventListener('click', () => {
-      materialMode = 'Tron';
+
+    matDefaultBtn.addEventListener("click", () => {
+      materialMode = "Tron";
       setActiveButton(materialButtons, matDefaultBtn);
       applyMaterialStyle();
-      setStatus('Material Tron aplicado.');
-    });
-    matMatteBtn.addEventListener('click', () => {
-      materialMode = 'Mate';
-      setActiveButton(materialButtons, matMatteBtn);
-      applyMaterialStyle();
-      setStatus('Material mate aplicado.');
-    });
-    matChromeBtn.addEventListener('click', () => {
-      materialMode = 'Chrome';
-      setActiveButton(materialButtons, matChromeBtn);
-      applyMaterialStyle();
-      setStatus('Material chrome aplicado.');
+      setStatus("Material Tron aplicado.");
     });
 
-    window.addEventListener('resize', () => {
+    matMatteBtn.addEventListener("click", () => {
+      materialMode = "Mate";
+      setActiveButton(materialButtons, matMatteBtn);
+      applyMaterialStyle();
+      setStatus("Material mate aplicado.");
+    });
+
+    matChromeBtn.addEventListener("click", () => {
+      materialMode = "Chrome";
+      setActiveButton(materialButtons, matChromeBtn);
+      applyMaterialStyle();
+      setStatus("Material chrome aplicado.");
+    });
+
+    window.addEventListener("resize", () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
@@ -801,12 +849,16 @@
     });
 
     const clock = new THREE.Clock();
+
     function animate() {
       requestAnimationFrame(animate);
+
       const delta = clock.getDelta();
+
       if (currentMesh && autoSpin) {
         currentMesh.rotation.z += delta * 0.33;
       }
+
       controls.update();
       renderer.render(scene, camera);
     }
