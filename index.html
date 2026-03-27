@@ -408,9 +408,9 @@
           <div class="control-group">
             <h2 class="group-title">Modelo</h2>
             <div class="row">
-              <label for="fileInput">Archivo STL <span class="value" id="fileName">Ninguno</span></label>
+              <label for="fileInput">Archivo STL <span class="value" id="fileName">AVION.stl</span></label>
               <input id="fileInput" type="file" accept=".stl" />
-              <div class="file-help">Carga el STL desde el botón o arrástralo a la ventana.</div>
+              <div class="file-help">Al abrir la página se intentará cargar AVION.stl automáticamente. Si no funciona, puedes cargarlo manualmente.</div>
             </div>
             <div class="button-row">
               <button id="resetViewBtn" type="button">Recentrar</button>
@@ -422,8 +422,8 @@
           <div class="control-group">
             <h2 class="group-title">Ajustes</h2>
             <div class="row">
-              <label for="scaleSlider">Tamaño <span class="value" id="scaleValue">1.00x</span></label>
-              <input id="scaleSlider" type="range" min="0.35" max="3.2" step="0.01" value="1" />
+              <label for="scaleSlider">Tamaño <span class="value" id="scaleValue">0.35x</span></label>
+              <input id="scaleSlider" type="range" min="0.35" max="3.2" step="0.01" value="0.35" />
             </div>
             <div class="row">
               <label for="colorSlider">Color <span class="value" id="colorValue">Neutro</span></label>
@@ -455,8 +455,8 @@
       </div>
 
       <div class="status-bar glass">
-        <div class="status-text" id="status">Carga un archivo STL para comenzar.</div>
-        <div class="stat">Escala: <strong id="hudScale">1.00x</strong></div>
+        <div class="status-text" id="status">Intentando cargar AVION.stl...</div>
+        <div class="stat">Escala: <strong id="hudScale">0.35x</strong></div>
         <div class="stat">Color: <strong id="hudColor">Neutro</strong></div>
         <div class="stat">Modo: <strong id="hudMode">Tron</strong></div>
       </div>
@@ -669,6 +669,16 @@
       currentMesh = null;
     }
 
+    function applyAircraftOrientation(mesh) {
+      mesh.rotation.set(0, 0, 0);
+      mesh.setRotationFromMatrix(new THREE.Matrix4().set(
+        0.9955579, -0.0000289, -0.0941515, 0,
+       -0.0007069, -0.9999741, -0.0071677, 0,
+       -0.0941489,  0.0072024, -0.9955321, 0,
+        0,          0,          0,         1
+      ));
+    }
+
     function normalizeAndPlaceMesh(mesh) {
       mesh.geometry.computeBoundingBox();
       mesh.geometry.computeBoundingSphere();
@@ -678,9 +688,10 @@
       const center = box.getCenter(new THREE.Vector3());
 
       mesh.geometry.translate(-center.x, -center.y, -center.z);
-      mesh.rotation.set(-Math.PI / 2, 0, 0);
       mesh.scale.setScalar(1);
       mesh.position.set(0, 0, 0);
+
+      applyAircraftOrientation(mesh);
 
       const tempBox = new THREE.Box3().setFromObject(mesh);
       const tempSize = tempBox.getSize(new THREE.Vector3());
@@ -704,6 +715,7 @@
       if (!currentMesh) return;
 
       const userScale = parseFloat(scaleSlider.value);
+
       currentMesh.scale.setScalar(currentBaseScale * userScale);
 
       const box = new THREE.Box3().setFromObject(currentMesh);
@@ -716,24 +728,24 @@
       updateHudScale(userScale);
     }
 
-    function buildMesh(geometry) {
+    function buildMesh(geometry, displayName = 'modelo.stl') {
       clearCurrentMesh();
 
       const mesh = new THREE.Mesh(geometry, buildMaterial());
       currentMesh = mesh;
       scene.add(mesh);
 
-      scaleSlider.value = '1';
-      updateHudScale(1);
+      fileName.textContent = displayName;
 
       normalizeAndPlaceMesh(mesh);
       applyMaterialStyle();
+      applyScaleOnly();
       fitCameraToObject(mesh);
 
-      setStatus('Modelo cargado y visible.');
+      setStatus(`Modelo cargado: ${displayName}`);
     }
 
-    function loadGeometryFromArrayBuffer(buffer) {
+    function loadGeometryFromArrayBuffer(buffer, displayName = 'modelo.stl') {
       try {
         const geometry = loader.parse(buffer);
 
@@ -746,7 +758,7 @@
           throw new Error('Geometría STL vacía o inválida.');
         }
 
-        buildMesh(geometry);
+        buildMesh(geometry, displayName);
       } catch (error) {
         console.error(error);
         setStatus('No se pudo leer o visualizar el STL.');
@@ -762,14 +774,34 @@
       }
 
       fileName.textContent = file.name;
-      setStatus('Cargando STL...');
+      setStatus('Cargando STL manual...');
 
       file.arrayBuffer()
-        .then(loadGeometryFromArrayBuffer)
+        .then(buffer => loadGeometryFromArrayBuffer(buffer, file.name))
         .catch((error) => {
           console.error(error);
           setStatus('No se pudo cargar el STL. Selecciona un archivo válido.');
         });
+    }
+
+    async function tryAutoLoadDefaultModel() {
+      const defaultFileName = 'AVION.stl';
+
+      try {
+        setStatus(`Intentando cargar ${defaultFileName}...`);
+        const response = await fetch(`./${defaultFileName}`, { cache: 'no-store' });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const buffer = await response.arrayBuffer();
+        loadGeometryFromArrayBuffer(buffer, defaultFileName);
+      } catch (error) {
+        console.error('Autocarga falló:', error);
+        fileName.textContent = 'Ninguno';
+        setStatus('No se pudo cargar AVION.stl automáticamente. Puedes cargarlo manualmente.');
+      }
     }
 
     fileInput.addEventListener('change', (event) => {
@@ -869,9 +901,10 @@
       renderer.render(scene, camera);
     }
 
-    updateHudScale(1);
+    updateHudScale(parseFloat(scaleSlider.value));
     getToneColor();
     animate();
+    tryAutoLoadDefaultModel();
   </script>
 </body>
 </html>
