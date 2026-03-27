@@ -9,19 +9,16 @@
       --bg-1: #020202;
       --bg-2: #0a0a0a;
       --panel: rgba(10, 10, 10, 0.72);
-      --panel-strong: rgba(16, 16, 16, 0.9);
       --line: rgba(255, 255, 255, 0.12);
       --line-strong: rgba(255, 255, 255, 0.24);
       --text: #f5f5f5;
       --muted: #b7b7b7;
       --glow: 0 0 22px rgba(255, 255, 255, 0.12);
       --radius-xl: 26px;
-      --radius-lg: 18px;
       --radius-md: 14px;
     }
 
     * { box-sizing: border-box; }
-
     html, body {
       margin: 0;
       width: 100%;
@@ -34,7 +31,6 @@
         radial-gradient(circle at 80% 15%, rgba(255,255,255,0.05), transparent 16%),
         linear-gradient(180deg, var(--bg-2) 0%, var(--bg-1) 100%);
     }
-
     body::before,
     body::after {
       content: "";
@@ -42,7 +38,6 @@
       inset: 0;
       pointer-events: none;
     }
-
     body::before {
       background-image:
         linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
@@ -51,43 +46,20 @@
       mask-image: radial-gradient(circle at center, black 52%, transparent 100%);
       opacity: 0.55;
     }
-
     body::after {
       background:
         radial-gradient(circle at center, rgba(255,255,255,0.06), transparent 42%),
         radial-gradient(circle at center, rgba(255,255,255,0.03), transparent 65%);
       animation: pulseGlow 5s ease-in-out infinite;
     }
-
     @keyframes pulseGlow {
       0%, 100% { opacity: 0.85; }
       50% { opacity: 1; }
     }
-
-    #app {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-    }
-
-    #scene {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      display: block;
-      cursor: grab;
-    }
-
+    #app { position: relative; width: 100%; height: 100%; overflow: hidden; }
+    #scene { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: grab; }
     #scene:active { cursor: grabbing; }
-
-    .hud {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-    }
-
+    .hud { position: absolute; inset: 0; pointer-events: none; }
     .glass {
       pointer-events: auto;
       backdrop-filter: blur(14px);
@@ -95,345 +67,88 @@
       border: 1px solid var(--line);
       box-shadow: var(--glow);
     }
-
-    .title-card {
+    .title-card, .control-panel, .hint-panel, .status-bar {
       position: absolute;
-      top: 22px;
-      left: 22px;
-      width: min(390px, calc(100vw - 44px));
-      padding: 20px 22px;
       border-radius: var(--radius-xl);
       overflow: hidden;
     }
-
-    .title-card::before,
-    .control-panel::before,
-    .status-bar::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.06) 48%, transparent 100%);
-      transform: translateX(-120%);
-      animation: sweep 8s linear infinite;
-      pointer-events: none;
+    .title-card { top: 22px; left: 22px; width: min(390px, calc(100vw - 44px)); padding: 20px 22px; }
+    .control-panel { top: 22px; right: 22px; width: min(380px, calc(100vw - 44px)); padding: 18px; }
+    .hint-panel { left: 22px; bottom: 86px; width: min(420px, calc(100vw - 44px)); padding: 14px 16px; color: var(--muted); font-size: 0.92rem; line-height: 1.55; }
+    .status-bar {
+      left: 22px; right: 22px; bottom: 22px; min-height: 48px; padding: 12px 16px;
+      display: grid; grid-template-columns: 1fr auto auto auto; gap: 14px; align-items: center;
     }
-
-    @keyframes sweep {
-      to { transform: translateX(120%); }
-    }
-
-    .eyebrow {
-      font-size: 0.72rem;
-      letter-spacing: 0.28em;
-      text-transform: uppercase;
-      color: #d6d6d6;
-      margin-bottom: 8px;
-    }
-
-    .title {
-      margin: 0;
-      font-size: clamp(1.6rem, 2.5vw, 2.2rem);
-      line-height: 1.05;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      text-shadow: 0 0 22px rgba(255,255,255,0.18);
-    }
-
-    .subtitle {
-      margin: 10px 0 0;
-      color: var(--muted);
-      line-height: 1.55;
-      font-size: 0.95rem;
-    }
-
-    .control-panel {
-      position: absolute;
-      top: 22px;
-      right: 22px;
-      width: min(380px, calc(100vw - 44px));
-      padding: 18px;
-      border-radius: var(--radius-xl);
-      overflow: hidden;
-    }
-
-    .panel-grid {
-      display: grid;
-      gap: 14px;
-    }
-
-    .control-group {
-      border: 1px solid var(--line);
-      border-radius: 20px;
-      padding: 14px;
-      background: rgba(255,255,255,0.02);
-    }
-
-    .group-title {
-      margin: 0 0 12px;
-      font-size: 0.82rem;
-      text-transform: uppercase;
-      letter-spacing: 0.18em;
-      color: #ebebeb;
-    }
-
-    .row {
-      display: grid;
-      gap: 10px;
-      margin-bottom: 12px;
-    }
-
+    .eyebrow { font-size: 0.72rem; letter-spacing: 0.28em; text-transform: uppercase; color: #d6d6d6; margin-bottom: 8px; }
+    .title { margin: 0; font-size: clamp(1.6rem, 2.5vw, 2.2rem); line-height: 1.05; letter-spacing: 0.08em; text-transform: uppercase; text-shadow: 0 0 22px rgba(255,255,255,0.18); }
+    .subtitle { margin: 10px 0 0; color: var(--muted); line-height: 1.55; font-size: 0.95rem; }
+    .panel-grid { display: grid; gap: 14px; }
+    .control-group { border: 1px solid var(--line); border-radius: 20px; padding: 14px; background: rgba(255,255,255,0.02); }
+    .group-title { margin: 0 0 12px; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.18em; color: #ebebeb; }
+    .row { display: grid; gap: 10px; margin-bottom: 12px; }
     .row:last-child { margin-bottom: 0; }
-
-    .row label {
-      font-size: 0.92rem;
-      color: var(--muted);
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-    }
-
-    .value {
-      color: var(--text);
-      font-variant-numeric: tabular-nums;
-    }
-
-    input[type="file"] {
-      width: 100%;
-      color: var(--muted);
-      background: rgba(255,255,255,0.04);
-      border: 1px solid var(--line);
-      border-radius: var(--radius-md);
-      padding: 10px 12px;
-    }
-
+    .row label { font-size: 0.92rem; color: var(--muted); display: flex; justify-content: space-between; gap: 12px; }
+    .value, .stat strong { color: var(--text); font-variant-numeric: tabular-nums; }
+    input[type="file"] { width: 100%; color: var(--muted); background: rgba(255,255,255,0.04); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 10px 12px; }
     input[type="range"] {
-      width: 100%;
-      appearance: none;
-      height: 8px;
-      border-radius: 999px;
-      background: linear-gradient(90deg, #1f1f1f, #ffffff, #1f1f1f);
-      outline: none;
+      width: 100%; appearance: none; height: 8px; border-radius: 999px;
+      background: linear-gradient(90deg, #1f1f1f, #ffffff, #1f1f1f); outline: none;
       box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
     }
-
     input[type="range"]::-webkit-slider-thumb {
-      appearance: none;
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      background: #fff;
-      border: 2px solid #0e0e0e;
-      box-shadow: 0 0 18px rgba(255,255,255,0.35);
-      cursor: pointer;
+      appearance: none; width: 18px; height: 18px; border-radius: 50%;
+      background: #fff; border: 2px solid #0e0e0e; box-shadow: 0 0 18px rgba(255,255,255,0.35); cursor: pointer;
     }
-
-    .button-row,
-    .mode-row {
-      display: grid;
-      gap: 10px;
-    }
-
-    .button-row { grid-template-columns: repeat(3, 1fr); }
-    .mode-row { grid-template-columns: repeat(3, 1fr); }
-
+    .button-row, .mode-row { display: grid; gap: 10px; grid-template-columns: repeat(3, 1fr); }
     button {
-      border: 1px solid var(--line);
-      background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
-      color: var(--text);
-      border-radius: var(--radius-md);
-      padding: 12px 10px;
-      font-weight: 600;
-      cursor: pointer;
+      border: 1px solid var(--line); background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+      color: var(--text); border-radius: var(--radius-md); padding: 12px 10px; font-weight: 600; cursor: pointer;
       transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease;
-      box-shadow: 0 0 0 rgba(255,255,255,0);
     }
-
-    button:hover {
-      transform: translateY(-1px);
-      border-color: var(--line-strong);
-      box-shadow: 0 0 18px rgba(255,255,255,0.1);
+    button:hover { transform: translateY(-1px); border-color: var(--line-strong); box-shadow: 0 0 18px rgba(255,255,255,0.1); }
+    button.active { background: linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0.06)); border-color: rgba(255,255,255,0.3); box-shadow: 0 0 18px rgba(255,255,255,0.12); }
+    .status-text { color: #ededed; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .stat { color: var(--muted); font-size: 0.9rem; }
+    .crosshair, .ring { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); pointer-events: none; }
+    .crosshair { width: 150px; height: 150px; opacity: 0.34; }
+    .crosshair::before, .crosshair::after, .crosshair span::before, .crosshair span::after {
+      content: ""; position: absolute; background: rgba(255,255,255,0.45); box-shadow: 0 0 14px rgba(255,255,255,0.18);
     }
-
-    button.active {
-      background: linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0.06));
-      border-color: rgba(255,255,255,0.3);
-      box-shadow: 0 0 18px rgba(255,255,255,0.12);
-    }
-
-    .hint-panel {
-      position: absolute;
-      left: 22px;
-      bottom: 86px;
-      width: min(420px, calc(100vw - 44px));
-      padding: 14px 16px;
-      border-radius: 18px;
-      color: var(--muted);
-      font-size: 0.92rem;
-      line-height: 1.55;
-    }
-
-    .status-bar {
-      position: absolute;
-      left: 22px;
-      right: 22px;
-      bottom: 22px;
-      min-height: 48px;
-      padding: 12px 16px;
-      border-radius: 18px;
-      display: grid;
-      grid-template-columns: 1fr auto auto auto;
-      gap: 14px;
-      align-items: center;
-      overflow: hidden;
-    }
-
-    .status-text {
-      color: #ededed;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .stat {
-      color: var(--muted);
-      font-size: 0.9rem;
-    }
-
-    .stat strong {
-      color: var(--text);
-      font-weight: 700;
-    }
-
-    .crosshair {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      width: 150px;
-      height: 150px;
-      transform: translate(-50%, -50%);
-      pointer-events: none;
-      opacity: 0.34;
-    }
-
-    .crosshair::before,
-    .crosshair::after,
-    .crosshair span::before,
-    .crosshair span::after {
-      content: "";
-      position: absolute;
-      background: rgba(255,255,255,0.45);
-      box-shadow: 0 0 14px rgba(255,255,255,0.18);
-    }
-
-    .crosshair::before,
-    .crosshair::after {
-      left: 50%;
-      width: 1px;
-      height: 42px;
-      transform: translateX(-50%);
-    }
-
-    .crosshair::before { top: 0; }
-    .crosshair::after { bottom: 0; }
-
-    .crosshair span::before,
-    .crosshair span::after {
-      top: 50%;
-      height: 1px;
-      width: 42px;
-      transform: translateY(-50%);
-    }
-
-    .crosshair span::before { left: 0; }
-    .crosshair span::after { right: 0; }
-
-    .ring {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      width: 340px;
-      height: 340px;
-      transform: translate(-50%, -50%);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 50%;
-      box-shadow: 0 0 28px rgba(255,255,255,0.06), inset 0 0 28px rgba(255,255,255,0.03);
-      pointer-events: none;
-      animation: rotateSlow 18s linear infinite;
-    }
-
-    .ring::before,
-    .ring::after {
-      content: "";
-      position: absolute;
-      inset: 18px;
-      border-radius: 50%;
-      border: 1px dashed rgba(255,255,255,0.08);
-    }
-
-    .ring::after {
-      inset: 50px;
-      animation: rotateSlowReverse 14s linear infinite;
-    }
-
-    @keyframes rotateSlow {
-      from { transform: translate(-50%, -50%) rotate(0deg); }
-      to { transform: translate(-50%, -50%) rotate(360deg); }
-    }
-
-    @keyframes rotateSlowReverse {
-      from { transform: rotate(360deg); }
-      to { transform: rotate(0deg); }
-    }
-
+    .crosshair::before, .crosshair::after { left: 50%; width: 1px; height: 42px; transform: translateX(-50%); }
+    .crosshair::before { top: 0; } .crosshair::after { bottom: 0; }
+    .crosshair span::before, .crosshair span::after { top: 50%; height: 1px; width: 42px; transform: translateY(-50%); }
+    .crosshair span::before { left: 0; } .crosshair span::after { right: 0; }
+    .ring { width: 340px; height: 340px; border: 1px solid rgba(255,255,255,0.08); border-radius: 50%; box-shadow: 0 0 28px rgba(255,255,255,0.06), inset 0 0 28px rgba(255,255,255,0.03); animation: rotateSlow 18s linear infinite; }
+    .ring::before, .ring::after { content: ""; position: absolute; inset: 18px; border-radius: 50%; border: 1px dashed rgba(255,255,255,0.08); }
+    .ring::after { inset: 50px; animation: rotateSlowReverse 14s linear infinite; }
+    @keyframes rotateSlow { from { transform: translate(-50%, -50%) rotate(0deg); } to { transform: translate(-50%, -50%) rotate(360deg); } }
+    @keyframes rotateSlowReverse { from { transform: rotate(360deg); } to { transform: rotate(0deg); } }
     @media (max-width: 980px) {
       html, body { overflow: auto; }
       #app { min-height: 100vh; }
       #scene { position: fixed; }
-      .hud {
-        display: grid;
-        gap: 12px;
-        padding: 16px;
-        align-content: start;
-      }
-      .title-card,
-      .control-panel,
-      .hint-panel,
-      .status-bar {
-        position: static;
-        width: 100%;
-      }
-      .status-bar {
-        grid-template-columns: 1fr;
-      }
-      .ring,
-      .crosshair { display: none; }
-      .button-row,
-      .mode-row { grid-template-columns: 1fr 1fr 1fr; }
-    }
-
-    @media (max-width: 640px) {
-      .button-row,
-      .mode-row { grid-template-columns: 1fr; }
+      .hud { display: grid; gap: 12px; padding: 16px; align-content: start; }
+      .title-card, .control-panel, .hint-panel, .status-bar { position: static; width: 100%; }
+      .status-bar { grid-template-columns: 1fr; }
+      .ring, .crosshair { display: none; }
     }
   </style>
 </head>
 <body>
   <div id="app">
     <canvas id="scene"></canvas>
-
     <div class="hud">
       <section class="title-card glass">
         <div class="eyebrow">3D Interface</div>
         <h1 class="title">Tron Aircraft Viewer</h1>
-        <p class="subtitle">Interfaz futurista para visualizar tu STL en el centro, moverlo libremente y ajustar tamaño, color, brillo y material con controles deslizables.</p>
+        <p class="subtitle">Interfaz futurista para visualizar tu STL en el centro y controlarlo libremente. Esta versión carga el archivo manualmente para evitar bloqueos del navegador.</p>
       </section>
-
       <aside class="control-panel glass">
         <div class="panel-grid">
           <div class="control-group">
             <h2 class="group-title">Modelo</h2>
             <div class="row">
-              <label for="fileInput">Archivo STL <span class="value" id="fileName">AVION.stl</span></label>
+              <label for="fileInput">Archivo STL <span class="value" id="fileName">Ninguno</span></label>
               <input id="fileInput" type="file" accept=".stl" />
             </div>
             <div class="button-row">
@@ -442,7 +157,6 @@
               <button id="wireBtn" type="button">Wireframe</button>
             </div>
           </div>
-
           <div class="control-group">
             <h2 class="group-title">Ajustes</h2>
             <div class="row">
@@ -462,7 +176,6 @@
               <input id="metalSlider" type="range" min="0" max="1" step="0.01" value="0.45" />
             </div>
           </div>
-
           <div class="control-group">
             <h2 class="group-title">Material</h2>
             <div class="mode-row">
@@ -473,16 +186,13 @@
           </div>
         </div>
       </aside>
-
-      <div class="hint-panel glass">Controles: clic izquierdo para rotar, rueda para zoom y clic derecho para mover. Si guardas este HTML junto a <strong>AVION.stl</strong>, intentará cargarlo automáticamente. También puedes cargar cualquier otro STL manualmente.</div>
-
+      <div class="hint-panel glass">Usa el selector de archivo para cargar el STL manualmente o arrástralo a la ventana. Si abres el HTML como archivo local, la carga automática suele fallar por restricciones del navegador.</div>
       <div class="status-bar glass">
-        <div class="status-text" id="status">Esperando modelo…</div>
+        <div class="status-text" id="status">Selecciona tu archivo STL o arrástralo a la ventana.</div>
         <div class="stat">Escala: <strong id="hudScale">1.00x</strong></div>
         <div class="stat">Color: <strong id="hudColor">Neutro</strong></div>
         <div class="stat">Modo: <strong id="hudMode">Tron</strong></div>
       </div>
-
       <div class="ring"></div>
       <div class="crosshair"><span></span></div>
     </div>
@@ -538,11 +248,9 @@
     const keyLight = new THREE.DirectionalLight(0xffffff, 1.2);
     const fillLight = new THREE.DirectionalLight(0xcfcfcf, 0.75);
     const rimLight = new THREE.DirectionalLight(0xffffff, 0.9);
-
     keyLight.position.set(6, 8, 10);
     fillLight.position.set(-8, 4, -6);
     rimLight.position.set(0, 12, -12);
-
     scene.add(ambientLight, keyLight, fillLight, rimLight);
 
     const grid = new THREE.GridHelper(50, 50, 0xffffff, 0x6a6a6a);
@@ -565,14 +273,8 @@
     let wireframe = false;
     let materialMode = 'Tron';
 
-    function setStatus(message) {
-      status.textContent = message;
-    }
-
-    function setActiveButton(group, activeButton) {
-      group.forEach((button) => button.classList.toggle('active', button === activeButton));
-    }
-
+    function setStatus(message) { status.textContent = message; }
+    function setActiveButton(group, activeButton) { group.forEach((button) => button.classList.toggle('active', button === activeButton)); }
     function hueToLabel(hue) {
       if (hue < 15 || hue >= 345) return 'Rojo';
       if (hue < 45) return 'Naranja';
@@ -583,33 +285,26 @@
       if (hue < 320) return 'Morado';
       return 'Magenta';
     }
-
     function getToneColor() {
       const hue = parseFloat(colorSlider.value);
       const label = hue === 0 ? 'Neutro' : hueToLabel(hue);
-      const color = hue === 0
-        ? new THREE.Color(0xd8d8d8)
-        : new THREE.Color().setHSL(hue / 360, 0.18, 0.78);
+      const color = hue === 0 ? new THREE.Color(0xd8d8d8) : new THREE.Color().setHSL(hue / 360, 0.18, 0.78);
       colorValue.textContent = label;
       hudColor.textContent = label;
       return { color, label };
     }
-
     function updateHudScale(value) {
       const text = `${value.toFixed(2)}x`;
       scaleValue.textContent = text;
       hudScale.textContent = text;
     }
-
     function applyMaterialStyle() {
       if (!currentMesh) return;
       const material = currentMesh.material;
       const metalnessValue = parseFloat(metalSlider.value);
       const { color } = getToneColor();
-
       material.color.copy(color);
       material.wireframe = wireframe;
-
       if (materialMode === 'Mate') {
         material.metalness = 0.05;
         material.roughness = 0.82;
@@ -629,47 +324,38 @@
         material.clearcoatRoughness = 0.3;
         material.emissive.copy(color).multiplyScalar(0.13);
       }
-
       material.needsUpdate = true;
       hudMode.textContent = materialMode;
       metalValue.textContent = metalnessValue.toFixed(2);
     }
-
     function centerAndFitMesh(mesh) {
       mesh.geometry.computeBoundingBox();
       mesh.geometry.computeVertexNormals();
-
       const box = mesh.geometry.boundingBox.clone();
       const center = box.getCenter(new THREE.Vector3());
       mesh.geometry.translate(-center.x, -center.y, -center.z);
       mesh.rotation.set(-Math.PI / 2, 0, 0);
-
       const tempBox = new THREE.Box3().setFromObject(mesh);
       const size = tempBox.getSize(new THREE.Vector3());
       const maxDim = Math.max(size.x, size.y, size.z) || 1;
       const baseScale = 4.2 / maxDim;
-
       mesh.userData.baseScale = baseScale;
       scaleSlider.value = '1';
       updateHudScale(1);
       mesh.scale.setScalar(baseScale);
-
       const scaledBox = new THREE.Box3().setFromObject(mesh);
       const scaledSize = scaledBox.getSize(new THREE.Vector3());
       mesh.position.set(0, -scaledBox.min.y - scaledSize.y * 0.08, 0);
-
       controls.target.set(0, 0.5, 0);
       camera.position.set(0, 2.8, 8.8);
       controls.update();
     }
-
     function applySliderScale() {
       if (!currentMesh) return;
       const userScale = parseFloat(scaleSlider.value);
       currentMesh.scale.setScalar(currentMesh.userData.baseScale * userScale);
       updateHudScale(userScale);
     }
-
     function buildMaterial() {
       return new THREE.MeshPhysicalMaterial({
         color: 0xd8d8d8,
@@ -681,7 +367,6 @@
         side: THREE.DoubleSide
       });
     }
-
     function buildMesh(geometry) {
       const mesh = new THREE.Mesh(geometry, buildMaterial());
       scene.add(mesh);
@@ -691,7 +376,6 @@
       applySliderScale();
       setStatus('Modelo cargado y listo para interactuar.');
     }
-
     function clearCurrentMesh() {
       if (!currentMesh) return;
       scene.remove(currentMesh);
@@ -699,7 +383,6 @@
       currentMesh.material.dispose();
       currentMesh = null;
     }
-
     function loadGeometryFromArrayBuffer(buffer) {
       try {
         const geometry = loader.parse(buffer);
@@ -710,42 +393,37 @@
         setStatus('No se pudo leer el archivo STL.');
       }
     }
-
-    async function tryAutoLoad() {
-      try {
-        const response = await fetch('./AVION.stl');
-        if (!response.ok) throw new Error('Archivo no encontrado');
-        const buffer = await response.arrayBuffer();
-        fileName.textContent = 'AVION.stl';
-        loadGeometryFromArrayBuffer(buffer);
-      } catch {
-        setStatus('Carga un archivo STL para comenzar.');
-      }
+    function showFileError(error) {
+      console.error(error);
+      setStatus('No se pudo cargar el STL. Selecciona el archivo manualmente y verifica que sea válido.');
     }
-
-    fileInput.addEventListener('change', async (event) => {
-      const file = event.target.files?.[0];
+    function handleFile(file) {
       if (!file) return;
+      if (!file.name.toLowerCase().endsWith('.stl')) {
+        setStatus('Selecciona un archivo con extensión .stl');
+        return;
+      }
       fileName.textContent = file.name;
       setStatus('Cargando STL…');
-      const buffer = await file.arrayBuffer();
-      loadGeometryFromArrayBuffer(buffer);
+      file.arrayBuffer().then(loadGeometryFromArrayBuffer).catch(showFileError);
+    }
+
+    fileInput.addEventListener('change', (event) => { handleFile(event.target.files?.[0]); });
+    window.addEventListener('dragover', (event) => { event.preventDefault(); });
+    window.addEventListener('drop', (event) => {
+      event.preventDefault();
+      handleFile(event.dataTransfer?.files?.[0]);
     });
-
     scaleSlider.addEventListener('input', applySliderScale);
-
     colorSlider.addEventListener('input', applyMaterialStyle);
-
     lightSlider.addEventListener('input', () => {
       const intensity = parseFloat(lightSlider.value);
       ambientLight.intensity = intensity;
       lightValue.textContent = intensity.toFixed(2);
     });
     lightValue.textContent = parseFloat(lightSlider.value).toFixed(2);
-
     metalSlider.addEventListener('input', applyMaterialStyle);
     metalValue.textContent = parseFloat(metalSlider.value).toFixed(2);
-
     resetViewBtn.addEventListener('click', () => {
       if (!currentMesh) return;
       controls.target.set(0, 0.5, 0);
@@ -753,67 +431,37 @@
       controls.update();
       setStatus('Vista reiniciada.');
     });
-
     spinBtn.addEventListener('click', () => {
       autoSpin = !autoSpin;
       spinBtn.classList.toggle('active', autoSpin);
       setStatus(autoSpin ? 'Auto giro activado.' : 'Auto giro pausado.');
     });
-
     wireBtn.addEventListener('click', () => {
       wireframe = !wireframe;
       wireBtn.classList.toggle('active', wireframe);
       applyMaterialStyle();
       setStatus(wireframe ? 'Wireframe activado.' : 'Wireframe desactivado.');
     });
-
     const materialButtons = [matDefaultBtn, matMatteBtn, matChromeBtn];
-
-    matDefaultBtn.addEventListener('click', () => {
-      materialMode = 'Tron';
-      setActiveButton(materialButtons, matDefaultBtn);
-      applyMaterialStyle();
-      setStatus('Material Tron aplicado.');
-    });
-
-    matMatteBtn.addEventListener('click', () => {
-      materialMode = 'Mate';
-      setActiveButton(materialButtons, matMatteBtn);
-      applyMaterialStyle();
-      setStatus('Material mate aplicado.');
-    });
-
-    matChromeBtn.addEventListener('click', () => {
-      materialMode = 'Chrome';
-      setActiveButton(materialButtons, matChromeBtn);
-      applyMaterialStyle();
-      setStatus('Material chrome aplicado.');
-    });
-
+    matDefaultBtn.addEventListener('click', () => { materialMode = 'Tron'; setActiveButton(materialButtons, matDefaultBtn); applyMaterialStyle(); setStatus('Material Tron aplicado.'); });
+    matMatteBtn.addEventListener('click', () => { materialMode = 'Mate'; setActiveButton(materialButtons, matMatteBtn); applyMaterialStyle(); setStatus('Material mate aplicado.'); });
+    matChromeBtn.addEventListener('click', () => { materialMode = 'Chrome'; setActiveButton(materialButtons, matChromeBtn); applyMaterialStyle(); setStatus('Material chrome aplicado.'); });
     window.addEventListener('resize', () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     });
-
     const clock = new THREE.Clock();
-
     function animate() {
       requestAnimationFrame(animate);
       const delta = clock.getDelta();
-
-      if (currentMesh && autoSpin) {
-        currentMesh.rotation.z += delta * 0.33;
-      }
-
+      if (currentMesh && autoSpin) currentMesh.rotation.z += delta * 0.33;
       controls.update();
       renderer.render(scene, camera);
     }
-
     updateHudScale(1);
     getToneColor();
-    tryAutoLoad();
     animate();
   </script>
 </body>
