@@ -19,6 +19,9 @@
       --radius-xl: 22px;
       --radius-lg: 16px;
       --radius-md: 12px;
+      --accent-red: #ff5858;
+      --accent-green: #58ff7e;
+      --accent-blue: #63b3ff;
     }
 
     * { box-sizing: border-box; }
@@ -106,11 +109,26 @@
     .control-panel {
       top: 18px;
       right: 18px;
-      width: min(460px, calc(100vw - 36px));
+      width: min(470px, calc(100vw - 36px));
       height: calc(100vh - 96px);
       overflow: auto;
       padding: 16px;
       z-index: 5;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255,255,255,0.24) transparent;
+    }
+
+    .control-panel::-webkit-scrollbar {
+      width: 10px;
+    }
+
+    .control-panel::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .control-panel::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.18);
+      border-radius: 999px;
     }
 
     .status-bar {
@@ -354,6 +372,69 @@
     .crosshair span::before { left: 0; }
     .crosshair span::after { right: 0; }
 
+    .collapsible {
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .collapse-header {
+      width: 100%;
+      border: none;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 14px 10px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      border-radius: 0;
+      box-shadow: none;
+      transform: none !important;
+    }
+
+    .collapse-header:hover {
+      background: rgba(255,255,255,0.03);
+      box-shadow: none;
+    }
+
+    .collapse-title {
+      font-size: 0.80rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: #f0f0f0;
+      text-align: left;
+    }
+
+    .collapse-arrow {
+      font-size: 1rem;
+      color: #e8e8e8;
+      transition: transform 0.2s ease;
+      transform: rotate(0deg);
+      line-height: 1;
+    }
+
+    .collapse-header.collapsed .collapse-arrow {
+      transform: rotate(-90deg);
+    }
+
+    .collapse-content {
+      padding: 14px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .collapse-content.hidden {
+      display: none;
+    }
+
+    .hint-inline {
+      margin-top: -2px;
+      margin-bottom: 4px;
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
     @media (max-width: 980px) {
       html, body { overflow: auto; }
       #app { min-height: 100vh; }
@@ -406,8 +487,8 @@
         <div class="eyebrow">3D STL Editor</div>
         <h1 class="title">Aircraft Viewer Pro</h1>
         <p class="subtitle">
-          Ahora el modelo y el plano se controlan por separado. Puedes mover el avión,
-          reposicionar el plano/grid y exportar el STL transformado.
+          El modelo y el plano se controlan por separado. Ahora también puedes rotar el plano,
+          colapsar secciones y trabajar con menos scroll.
         </p>
       </section>
 
@@ -426,12 +507,17 @@
 
             <div class="button-row-2">
               <button id="resetViewBtn" type="button">Recentrar</button>
-              <button id="spinBtn" type="button" class="active">Auto giro</button>
+              <button id="fitScaleViewBtn" type="button">Ajustar cámara</button>
             </div>
 
             <div class="button-row-2" style="margin-top:10px;">
+              <button id="spinBtn" type="button" class="active">Auto giro</button>
               <button id="wireBtn" type="button">Wireframe</button>
+            </div>
+
+            <div class="button-row-2" style="margin-top:10px;">
               <button id="axesBtn" type="button" class="active">Ejes XYZ</button>
+              <button id="snapPlaneBtn" type="button">Plano al modelo</button>
             </div>
           </div>
 
@@ -465,133 +551,186 @@
             </div>
           </div>
 
-          <div class="control-group">
-            <h2 class="group-title">Transformaciones del modelo</h2>
+          <div class="control-group collapsible">
+            <button id="modelCollapseBtn" class="collapse-header" type="button" aria-expanded="true">
+              <span class="collapse-title">Transformaciones del modelo</span>
+              <span class="collapse-arrow">▼</span>
+            </button>
 
-            <div class="subsection-title">Posición</div>
-            <div class="axis-grid">
-              <div class="axis-row">
-                <div class="mini-label">X <span class="value" id="posXLabel">0.00</span></div>
-                <div class="axis-inputs">
-                  <input id="posXSlider" type="range" min="-1000" max="1000" step="0.1" value="0" />
-                  <input id="posXInput" type="number" step="0.1" value="0" />
+            <div id="modelCollapseContent" class="collapse-content">
+              <div class="hint-inline">Controla posición, rotación y escala del STL.</div>
+
+              <div>
+                <div class="subsection-title">Posición</div>
+                <div class="axis-grid">
+                  <div class="axis-row">
+                    <div class="mini-label">X <span class="value" id="posXLabel">0.00</span></div>
+                    <div class="axis-inputs">
+                      <input id="posXSlider" type="range" min="-1000" max="1000" step="0.1" value="0" />
+                      <input id="posXInput" type="number" step="0.1" value="0" />
+                    </div>
+                  </div>
+
+                  <div class="axis-row">
+                    <div class="mini-label">Y <span class="value" id="posYLabel">0.00</span></div>
+                    <div class="axis-inputs">
+                      <input id="posYSlider" type="range" min="-1000" max="1000" step="0.1" value="0" />
+                      <input id="posYInput" type="number" step="0.1" value="0" />
+                    </div>
+                  </div>
+
+                  <div class="axis-row">
+                    <div class="mini-label">Z <span class="value" id="posZLabel">0.00</span></div>
+                    <div class="axis-inputs">
+                      <input id="posZSlider" type="range" min="-1000" max="1000" step="0.1" value="0" />
+                      <input id="posZInput" type="number" step="0.1" value="0" />
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div class="axis-row">
-                <div class="mini-label">Y <span class="value" id="posYLabel">0.00</span></div>
-                <div class="axis-inputs">
-                  <input id="posYSlider" type="range" min="-1000" max="1000" step="0.1" value="0" />
-                  <input id="posYInput" type="number" step="0.1" value="0" />
+              <div class="divider"></div>
+
+              <div>
+                <div class="subsection-title">Rotación (grados)</div>
+                <div class="axis-grid">
+                  <div class="axis-row">
+                    <div class="mini-label">Rot X <span class="value" id="rotXLabel">0.00°</span></div>
+                    <div class="axis-inputs">
+                      <input id="rotXSlider" type="range" min="-180" max="180" step="0.1" value="0" />
+                      <input id="rotXInput" type="number" step="0.1" value="0" />
+                    </div>
+                  </div>
+
+                  <div class="axis-row">
+                    <div class="mini-label">Rot Y <span class="value" id="rotYLabel">0.00°</span></div>
+                    <div class="axis-inputs">
+                      <input id="rotYSlider" type="range" min="-180" max="180" step="0.1" value="0" />
+                      <input id="rotYInput" type="number" step="0.1" value="0" />
+                    </div>
+                  </div>
+
+                  <div class="axis-row">
+                    <div class="mini-label">Rot Z <span class="value" id="rotZLabel">0.00°</span></div>
+                    <div class="axis-inputs">
+                      <input id="rotZSlider" type="range" min="-180" max="180" step="0.1" value="0" />
+                      <input id="rotZInput" type="number" step="0.1" value="0" />
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div class="axis-row">
-                <div class="mini-label">Z <span class="value" id="posZLabel">0.00</span></div>
-                <div class="axis-inputs">
-                  <input id="posZSlider" type="range" min="-1000" max="1000" step="0.1" value="0" />
-                  <input id="posZInput" type="number" step="0.1" value="0" />
-                </div>
-              </div>
-            </div>
+              <div class="divider"></div>
 
-            <div class="divider"></div>
-            <div class="subsection-title">Rotación (grados)</div>
+              <div>
+                <div class="subsection-title">Escala por eje</div>
+                <div class="axis-grid">
+                  <div class="axis-row">
+                    <div class="mini-label">Scale X <span class="value" id="scaleXLabel">1.00</span></div>
+                    <div class="axis-inputs">
+                      <input id="scaleXSlider" type="range" min="0.05" max="8" step="0.01" value="1" />
+                      <input id="scaleXInput" type="number" step="0.01" value="1" />
+                    </div>
+                  </div>
 
-            <div class="axis-grid">
-              <div class="axis-row">
-                <div class="mini-label">Rot X <span class="value" id="rotXLabel">0.00°</span></div>
-                <div class="axis-inputs">
-                  <input id="rotXSlider" type="range" min="-180" max="180" step="0.1" value="0" />
-                  <input id="rotXInput" type="number" step="0.1" value="0" />
-                </div>
-              </div>
+                  <div class="axis-row">
+                    <div class="mini-label">Scale Y <span class="value" id="scaleYLabel">1.00</span></div>
+                    <div class="axis-inputs">
+                      <input id="scaleYSlider" type="range" min="0.05" max="8" step="0.01" value="1" />
+                      <input id="scaleYInput" type="number" step="0.01" value="1" />
+                    </div>
+                  </div>
 
-              <div class="axis-row">
-                <div class="mini-label">Rot Y <span class="value" id="rotYLabel">0.00°</span></div>
-                <div class="axis-inputs">
-                  <input id="rotYSlider" type="range" min="-180" max="180" step="0.1" value="0" />
-                  <input id="rotYInput" type="number" step="0.1" value="0" />
-                </div>
-              </div>
-
-              <div class="axis-row">
-                <div class="mini-label">Rot Z <span class="value" id="rotZLabel">0.00°</span></div>
-                <div class="axis-inputs">
-                  <input id="rotZSlider" type="range" min="-180" max="180" step="0.1" value="0" />
-                  <input id="rotZInput" type="number" step="0.1" value="0" />
-                </div>
-              </div>
-            </div>
-
-            <div class="divider"></div>
-            <div class="subsection-title">Escala por eje</div>
-
-            <div class="axis-grid">
-              <div class="axis-row">
-                <div class="mini-label">Scale X <span class="value" id="scaleXLabel">1.00</span></div>
-                <div class="axis-inputs">
-                  <input id="scaleXSlider" type="range" min="0.05" max="8" step="0.01" value="1" />
-                  <input id="scaleXInput" type="number" step="0.01" value="1" />
+                  <div class="axis-row">
+                    <div class="mini-label">Scale Z <span class="value" id="scaleZLabel">1.00</span></div>
+                    <div class="axis-inputs">
+                      <input id="scaleZSlider" type="range" min="0.05" max="8" step="0.01" value="1" />
+                      <input id="scaleZInput" type="number" step="0.01" value="1" />
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div class="axis-row">
-                <div class="mini-label">Scale Y <span class="value" id="scaleYLabel">1.00</span></div>
-                <div class="axis-inputs">
-                  <input id="scaleYSlider" type="range" min="0.05" max="8" step="0.01" value="1" />
-                  <input id="scaleYInput" type="number" step="0.01" value="1" />
-                </div>
+              <div class="button-row-2" style="margin-top:12px;">
+                <button id="resetTransformsBtn" type="button">Reset modelo</button>
+                <button id="downloadStlBtn" type="button">Descargar STL</button>
               </div>
-
-              <div class="axis-row">
-                <div class="mini-label">Scale Z <span class="value" id="scaleZLabel">1.00</span></div>
-                <div class="axis-inputs">
-                  <input id="scaleZSlider" type="range" min="0.05" max="8" step="0.01" value="1" />
-                  <input id="scaleZInput" type="number" step="0.01" value="1" />
-                </div>
-              </div>
-            </div>
-
-            <div class="button-row-2" style="margin-top:12px;">
-              <button id="resetTransformsBtn" type="button">Reset modelo</button>
-              <button id="downloadStlBtn" type="button">Descargar STL</button>
             </div>
           </div>
 
-          <div class="control-group">
-            <h2 class="group-title">Transformaciones del plano</h2>
+          <div class="control-group collapsible">
+            <button id="planeCollapseBtn" class="collapse-header" type="button" aria-expanded="true">
+              <span class="collapse-title">Transformaciones del plano</span>
+              <span class="collapse-arrow">▼</span>
+            </button>
 
-            <div class="subsection-title">Posición del plano/grid</div>
-            <div class="axis-grid">
-              <div class="axis-row">
-                <div class="mini-label">Plano X <span class="value" id="planeXLabel">0.00</span></div>
-                <div class="axis-inputs">
-                  <input id="planeXSlider" type="range" min="-1000" max="1000" step="0.1" value="0" />
-                  <input id="planeXInput" type="number" step="0.1" value="0" />
+            <div id="planeCollapseContent" class="collapse-content">
+              <div class="hint-inline">Controla la posición y rotación del plano/grid sin afectar al modelo.</div>
+
+              <div>
+                <div class="subsection-title">Posición del plano</div>
+                <div class="axis-grid">
+                  <div class="axis-row">
+                    <div class="mini-label">Plano X <span class="value" id="planeXLabel">0.00</span></div>
+                    <div class="axis-inputs">
+                      <input id="planeXSlider" type="range" min="-1000" max="1000" step="0.1" value="0" />
+                      <input id="planeXInput" type="number" step="0.1" value="0" />
+                    </div>
+                  </div>
+
+                  <div class="axis-row">
+                    <div class="mini-label">Plano Y <span class="value" id="planeYLabel">0.00</span></div>
+                    <div class="axis-inputs">
+                      <input id="planeYSlider" type="range" min="-1000" max="1000" step="0.1" value="0" />
+                      <input id="planeYInput" type="number" step="0.1" value="0" />
+                    </div>
+                  </div>
+
+                  <div class="axis-row">
+                    <div class="mini-label">Plano Z <span class="value" id="planeZLabel">0.00</span></div>
+                    <div class="axis-inputs">
+                      <input id="planeZSlider" type="range" min="-1000" max="1000" step="0.1" value="0" />
+                      <input id="planeZInput" type="number" step="0.1" value="0" />
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div class="axis-row">
-                <div class="mini-label">Plano Y <span class="value" id="planeYLabel">0.00</span></div>
-                <div class="axis-inputs">
-                  <input id="planeYSlider" type="range" min="-1000" max="1000" step="0.1" value="0" />
-                  <input id="planeYInput" type="number" step="0.1" value="0" />
+              <div class="divider"></div>
+
+              <div>
+                <div class="subsection-title">Rotación del plano (grados)</div>
+                <div class="axis-grid">
+                  <div class="axis-row">
+                    <div class="mini-label">Plano Rot X <span class="value" id="planeRotXLabel">0.00°</span></div>
+                    <div class="axis-inputs">
+                      <input id="planeRotXSlider" type="range" min="-180" max="180" step="0.1" value="0" />
+                      <input id="planeRotXInput" type="number" step="0.1" value="0" />
+                    </div>
+                  </div>
+
+                  <div class="axis-row">
+                    <div class="mini-label">Plano Rot Y <span class="value" id="planeRotYLabel">0.00°</span></div>
+                    <div class="axis-inputs">
+                      <input id="planeRotYSlider" type="range" min="-180" max="180" step="0.1" value="0" />
+                      <input id="planeRotYInput" type="number" step="0.1" value="0" />
+                    </div>
+                  </div>
+
+                  <div class="axis-row">
+                    <div class="mini-label">Plano Rot Z <span class="value" id="planeRotZLabel">0.00°</span></div>
+                    <div class="axis-inputs">
+                      <input id="planeRotZSlider" type="range" min="-180" max="180" step="0.1" value="0" />
+                      <input id="planeRotZInput" type="number" step="0.1" value="0" />
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div class="axis-row">
-                <div class="mini-label">Plano Z <span class="value" id="planeZLabel">0.00</span></div>
-                <div class="axis-inputs">
-                  <input id="planeZSlider" type="range" min="-1000" max="1000" step="0.1" value="0" />
-                  <input id="planeZInput" type="number" step="0.1" value="0" />
-                </div>
+              <div class="button-row-2" style="margin-top:12px;">
+                <button id="resetPlaneBtn" type="button">Reset plano</button>
+                <button id="levelPlaneBtn" type="button">Nivelar plano</button>
               </div>
-            </div>
-
-            <div class="button-row-2" style="margin-top:12px;">
-              <button id="resetPlaneBtn" type="button">Reset plano</button>
-              <button id="snapPlaneBtn" type="button">Plano al modelo</button>
             </div>
           </div>
 
@@ -642,6 +781,7 @@
     const metalValue = $('metalValue');
 
     const resetViewBtn = $('resetViewBtn');
+    const fitScaleViewBtn = $('fitScaleViewBtn');
     const spinBtn = $('spinBtn');
     const wireBtn = $('wireBtn');
     const axesBtn = $('axesBtn');
@@ -651,6 +791,12 @@
 
     const resetPlaneBtn = $('resetPlaneBtn');
     const snapPlaneBtn = $('snapPlaneBtn');
+    const levelPlaneBtn = $('levelPlaneBtn');
+
+    const modelCollapseBtn = $('modelCollapseBtn');
+    const modelCollapseContent = $('modelCollapseContent');
+    const planeCollapseBtn = $('planeCollapseBtn');
+    const planeCollapseContent = $('planeCollapseContent');
 
     const matDefaultBtn = $('matDefaultBtn');
     const matMatteBtn = $('matMatteBtn');
@@ -673,7 +819,11 @@
     const planeControlsMap = {
       planeX: { slider: $('planeXSlider'), input: $('planeXInput'), label: $('planeXLabel'), min: -1000, max: 1000, def: 0, decimals: 2 },
       planeY: { slider: $('planeYSlider'), input: $('planeYInput'), label: $('planeYLabel'), min: -1000, max: 1000, def: 0, decimals: 2 },
-      planeZ: { slider: $('planeZSlider'), input: $('planeZInput'), label: $('planeZLabel'), min: -1000, max: 1000, def: 0, decimals: 2 }
+      planeZ: { slider: $('planeZSlider'), input: $('planeZInput'), label: $('planeZLabel'), min: -1000, max: 1000, def: 0, decimals: 2 },
+
+      planeRotX: { slider: $('planeRotXSlider'), input: $('planeRotXInput'), label: $('planeRotXLabel'), min: -180, max: 180, def: 0, decimals: 2, suffix: '°' },
+      planeRotY: { slider: $('planeRotYSlider'), input: $('planeRotYInput'), label: $('planeRotYLabel'), min: -180, max: 180, def: 0, decimals: 2, suffix: '°' },
+      planeRotZ: { slider: $('planeRotZSlider'), input: $('planeRotZInput'), label: $('planeRotZLabel'), min: -180, max: 180, def: 0, decimals: 2, suffix: '°' }
     };
 
     const transformState = {
@@ -686,7 +836,10 @@
     const planeState = {
       planeX: 0,
       planeY: 0,
-      planeZ: 0
+      planeZ: 0,
+      planeRotX: 0,
+      planeRotY: 0,
+      planeRotZ: 0
     };
 
     let autoSpin = true;
@@ -735,10 +888,13 @@
 
     scene.add(ambientLight, keyLight, fillLight, rimLight);
 
+    const planeGroup = new THREE.Group();
+    scene.add(planeGroup);
+
     const grid = new THREE.GridHelper(3000, 150, 0xffffff, 0x7f7f7f);
     grid.material.opacity = 0.25;
     grid.material.transparent = true;
-    scene.add(grid);
+    planeGroup.add(grid);
 
     const floorPlane = new THREE.Mesh(
       new THREE.PlaneGeometry(4000, 4000),
@@ -750,7 +906,7 @@
       })
     );
     floorPlane.rotation.x = -Math.PI / 2;
-    scene.add(floorPlane);
+    planeGroup.add(floorPlane);
 
     const axesHelper = new THREE.AxesHelper(120);
     scene.add(axesHelper);
@@ -882,7 +1038,8 @@
 
       Object.entries(planeControlsMap).forEach(([key, cfg]) => {
         const value = planeState[key];
-        cfg.label.textContent = Number(value).toFixed(cfg.decimals);
+        const suffix = cfg.suffix || '';
+        cfg.label.textContent = `${Number(value).toFixed(cfg.decimals)}${suffix}`;
         cfg.slider.value = value;
         cfg.input.value = Number(value).toFixed(cfg.decimals);
       });
@@ -913,16 +1070,16 @@
     }
 
     function applyPlaneTransforms() {
-      grid.position.set(
+      planeGroup.position.set(
         planeState.planeX,
         planeState.planeY,
         planeState.planeZ
       );
 
-      floorPlane.position.set(
-        planeState.planeX,
-        planeState.planeY - 0.2,
-        planeState.planeZ
+      planeGroup.rotation.set(
+        degToRad(planeState.planeRotX),
+        degToRad(planeState.planeRotY),
+        degToRad(planeState.planeRotZ)
       );
     }
 
@@ -980,11 +1137,24 @@
       planeState.planeX = 0;
       planeState.planeY = 0;
       planeState.planeZ = 0;
+      planeState.planeRotX = 0;
+      planeState.planeRotY = 0;
+      planeState.planeRotZ = 0;
 
       updateAllControlLabels();
       applyPlaneTransforms();
 
       if (!silent) setStatus('Transformaciones del plano reiniciadas.');
+    }
+
+    function levelPlane() {
+      planeState.planeRotX = 0;
+      planeState.planeRotY = 0;
+      planeState.planeRotZ = 0;
+
+      updateAllControlLabels();
+      applyPlaneTransforms();
+      setStatus('Plano nivelado.');
     }
 
     function snapPlaneToModel() {
@@ -1022,10 +1192,6 @@
       transformState.uniformScale = clamp(value, 0.1, 8, 1);
       updateAllControlLabels();
       applyTransformsToMesh();
-
-      if (currentMesh) {
-        fitCameraToObject(currentMesh);
-      }
     }
 
     function prepareGeometry(geometry) {
@@ -1262,6 +1428,13 @@
       axesRenderer.render(axesScene, axesCamera);
     }
 
+    function toggleCollapse(button, content) {
+      const isExpanded = button.getAttribute('aria-expanded') === 'true';
+      button.setAttribute('aria-expanded', String(!isExpanded));
+      button.classList.toggle('collapsed', isExpanded);
+      content.classList.toggle('hidden', isExpanded);
+    }
+
     Object.entries(controlsMap).forEach(([key, cfg]) => {
       cfg.slider.addEventListener('input', () => setTransformValue(key, cfg.slider.value));
       cfg.input.addEventListener('input', () => setTransformValue(key, cfg.input.value));
@@ -1314,6 +1487,10 @@
       snapPlaneToModel();
     });
 
+    levelPlaneBtn.addEventListener('click', () => {
+      levelPlane();
+    });
+
     downloadStlBtn.addEventListener('click', () => {
       downloadAdjustedStl();
     });
@@ -1322,6 +1499,12 @@
       if (!currentMesh) return;
       fitCameraToObject(currentMesh);
       setStatus('Vista reiniciada.');
+    });
+
+    fitScaleViewBtn.addEventListener('click', () => {
+      if (!currentMesh) return;
+      fitCameraToObject(currentMesh);
+      setStatus('Cámara ajustada al tamaño actual del modelo.');
     });
 
     spinBtn.addEventListener('click', () => {
@@ -1342,6 +1525,14 @@
       axesBtn.classList.toggle('active', showAxesWidget);
       axesViewport.classList.toggle('hidden', !showAxesWidget);
       setStatus(showAxesWidget ? 'Visor de ejes activado.' : 'Visor de ejes oculto.');
+    });
+
+    modelCollapseBtn.addEventListener('click', () => {
+      toggleCollapse(modelCollapseBtn, modelCollapseContent);
+    });
+
+    planeCollapseBtn.addEventListener('click', () => {
+      toggleCollapse(planeCollapseBtn, planeCollapseContent);
     });
 
     const materialButtons = [matDefaultBtn, matMatteBtn, matChromeBtn];
